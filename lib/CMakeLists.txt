@@ -30,7 +30,7 @@ add_subdirectory(blink)
 # Da tinyusb direkt in 'libraries/tinyusb' liegt, verweisen wir darauf.
 # Der zweite Parameter 'tinyusb_library' ist der Name, der diesem Unterverzeichnis
 # im CMake-Build-System gegeben wird und über den du es später verknüpfen kannst.
-add_subdirectory(tinyusb tinyusb_build)
+# add_subdirectory(tinyusb tinyusb_build)
 # --- ENDE NEU ---
 
 # Fügen Sie hier weitere Bibliotheken hinzu, die Sie später in diesem Ordner erstellen

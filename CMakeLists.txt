@@ -1,32 +1,25 @@
-# == DO NOT EDIT THE FOLLOWING LINES for the Raspberry Pi Pico VS Code Extension to work ==
-if(WIN32)
-    set(USERHOME $ENV{USERPROFILE})
-else()
-    set(USERHOME $ENV{HOME})
-endif()
-set(sdkVersion 2.1.1)
-set(toolchainVersion 14_2_Rel1)
-set(picotoolVersion 2.1.1)
-set(picoVscode ${USERHOME}/pico/pico-sdk/cmake/pico-vscode.cmake)
-if (EXISTS ${picoVscode})
-    include(${picoVscode})
-endif()
-# ====================================================================================
-set(PICO_BOARD pico CACHE STRING "Board type")
+cmake_minimum_required(VERSION 3.13)
 
-cmake_minimum_required(VERSION 3.12)
+# Projektname & Sprache
+project(infinity_rts_core C CXX ASM)
 
+set(CMAKE_C_STANDARD 11)
+set(CMAKE_CXX_STANDARD 17)
+
+# Pico SDK & Extras importieren
 include(pico_sdk_import.cmake)
+include(pico_extras_import.cmake)
 
-project(Pico-FreeRTOS) # <--- Project name: Pico-FreeRTOS. Is your target 'fusioncoreos'?
+# FreeRTOS, LwIP, TinyUSB einbinden
+add_subdirectory(external/FreeRTOS)
+add_subdirectory(external/tinyusb)
+add_subdirectory(external/lwip)
 
-pico_sdk_init()
+# Eigene Bibliotheken einbinden
+add_subdirectory(lib/blink)
+add_subdirectory(lib/lcd_1602_i2c)
+add_subdirectory(lib/ssd1306_i2c)
 
-add_compile_definitions(PICO_RP2040_SET_INTERRUPT_VECTOR_TABLE_TO_RAM=1) # Empfohlen für FreeRTOS
-add_compile_definitions(PICO_DEFAULT_UART_BAUD_RATE=115200) # Oder was du nutzen möchtest
-add_compile_options(-I${CMAKE_CURRENT_SOURCE_DIR}/ProjectFiles)
+# Hauptanwendung
+add_subdirectory(src)
 
-
-add_subdirectory(freertos)
-add_subdirectory(librarys)
-add_subdirectory(ProjectFiles)

@@ -1,0 +1,12 @@
+[submodule "external/FreeRTOS"]
+	path = external/FreeRTOS
+	url = https://github.com/FreeRTOS/FreeRTOS-Kernel.git
+	branch = main
+[submodule "external/lwip"]
+	path = external/lwip
+	url = https://git.savannah.nongnu.org/git/lwip.git
+	branch = master
+[submodule "external/tinyusb"]
+	path = external/tinyusb
+	url = https://github.com/hathach/tinyusb.git
+	branch = v0.17.0
