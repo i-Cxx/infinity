@@ -1,21 +1,39 @@
-add_executable(${PROJECT_NAME}
+# src/CMakeLists.txt
+
+# FreeRTOS-Konfiguration (stellt FreeRTOSConfig.h aus dem übergeordneten include/ bereit)
+add_library(freertos_config INTERFACE)
+
+target_include_directories(freertos_config INTERFACE
+    ${CMAKE_SOURCE_DIR}/include
+)
+
+# Erstelle das ausführbare Ziel
+add_executable(infinity_rts
     main.c
     usb_rndis_task.c
     webserver_task.c
 )
 
-target_include_directories(${PROJECT_NAME} PUBLIC
-    ${CMAKE_CURRENT_SOURCE_DIR}/../include
-)
-
-target_link_libraries(${PROJECT_NAME}
+# Linke notwendige Libraries
+target_link_libraries(infinity_rts
     pico_stdlib
-    FreeRTOS-Kernel
-    tinyusb_device
+    hardware_i2c
+    hardware_gpio
+    freertos_kernel      
+    freertos_config     
     lwip
-    blink
-    lcd_1602_i2c
-    ssd1306_i2c
+    tinyusb_device
+    blink_lib
+    lcd1602_lib
+    ssd1306_lib
 )
 
-pico_add_extra_outputs(${PROJECT_NAME})
+# Compiler Optionen
+target_compile_options(infinity_rts PRIVATE -Wall -Wextra -O2)
+
+# UART für printf aktivieren
+pico_enable_stdio_uart(infinity_rts 1)
+pico_enable_stdio_usb(infinity_rts 0)
+
+# Erzeuge ELF, BIN etc.
+pico_add_extra_outputs(infinity_rts)
