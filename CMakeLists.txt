@@ -9,9 +9,7 @@ set(CMAKE_CXX_STANDARD 17)
 include(pico_sdk_import.cmake)
 include(pico_extras_import.cmake)
 
-
-
-# FreeRTOS, LwIP, TinyUSB einbinden
+# FreeRTOS, lwIP, TinyUSB als Subdirs einbinden
 add_subdirectory(external/FreeRTOS)
 add_subdirectory(external/lwip)
 add_subdirectory(external/tinyusb)
@@ -21,5 +19,5 @@ add_subdirectory(lib/blink)
 add_subdirectory(lib/lcd_1602_i2c)
 add_subdirectory(lib/ssd1306_i2c)
 
-# Hauptanwendung einbinden
+# Hauptanwendung (src) einbinden
 add_subdirectory(src)

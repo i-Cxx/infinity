@@ -1,5 +1,7 @@
 add_library(webserver STATIC
     webserver.c
+    usb_rndis_task.c      
+    webserver_task.c       
     tusb_lwip_glue.c
     usb_descriptors.c
     fsdata.c

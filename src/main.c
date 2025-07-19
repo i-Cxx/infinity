@@ -10,7 +10,6 @@
 #include "webserver.h"         // Webserver-Task
 #include "usb_rndis_task.h"    // USB-RNDIS-Task
 
-// C++ Task-Funktion extern deklarieren (für Blink-Task)
 #ifdef __cplusplus
 extern "C" {
 #endif
@@ -19,18 +18,15 @@ extern void vBlinkTaskCpp(void *pvParameters);
 }
 #endif
 
-// GPIO-Pin-Definitionen für LEDs
-#define MY_CUSTOM_LED_PIN 25 // Onboard LED
-#define WARN_LED 16          // Externe Warn-LED
+#define MY_CUSTOM_LED_PIN 25
+#define WARN_LED 16
 
-// Task-Prioritäten
-#define BLINK_TASK_PRIORITY    (tskIDLE_PRIORITY + 1)
-#define LCD1602_TASK_PRIORITY  (tskIDLE_PRIORITY + 2)
-#define SSD1306_TASK_PRIORITY  (tskIDLE_PRIORITY + 3)
-#define RNDIS_TASK_PRIORITY    (tskIDLE_PRIORITY + 4)
-#define WEBSERVER_TASK_PRIORITY (tskIDLE_PRIORITY + 5)
+#define BLINK_TASK_PRIORITY     (tskIDLE_PRIORITY + 1)
+#define LCD1602_TASK_PRIORITY   (tskIDLE_PRIORITY + 2)
+#define SSD1306_TASK_PRIORITY   (tskIDLE_PRIORITY + 3)
+#define RNDIS_TASK_PRIORITY     (tskIDLE_PRIORITY + 4)    // Falls Priorität gebraucht wird
+#define WEBSERVER_TASK_PRIORITY (tskIDLE_PRIORITY + 5)    // Falls Priorität gebraucht wird
 
-// I2C-Konfiguration (beide Displays nutzen i2c0)
 #define LCD1602_I2C_INSTANCE    i2c0
 #define LCD1602_I2C_SDA_PIN     4
 #define LCD1602_I2C_SCL_PIN     5
@@ -41,10 +37,7 @@ extern void vBlinkTaskCpp(void *pvParameters);
 #define SSD1306_I2C_SCL_PIN     5
 #define SSD1306_OLED_ADDR       0x3C
 
-// LCD 1602 Instanz
 lcd_1602_i2c_t my_lcd1602;
-
-// Framebuffer SSD1306
 uint8_t ssd1306_frame_buffer[SSD1306_BUF_LEN];
 struct render_area ssd1306_full_frame_area = {
     .start_col = 0,
@@ -53,7 +46,6 @@ struct render_area ssd1306_full_frame_area = {
     .end_page = SSD1306_NUM_PAGES - 1
 };
 
-// --- LCD 1602 Task ---
 void vLcd1602Task(void *pvParameters) {
     lcd_init(&my_lcd1602, LCD1602_I2C_INSTANCE, LCD1602_I2C_ADDR);
     printf("LCD 1602 initialization completed in task.\n");
@@ -73,7 +65,6 @@ void vLcd1602Task(void *pvParameters) {
     }
 }
 
-// --- SSD1306 Task ---
 void vSsd1306Task(void *pvParameters) {
     ssd1306_init(SSD1306_I2C_INSTANCE, SSD1306_I2C_SDA_PIN, SSD1306_I2C_SCL_PIN);
     printf("SSD1306 OLED initialization completed in task.\n");
@@ -106,7 +97,6 @@ void vSsd1306Task(void *pvParameters) {
     }
 }
 
-// --- main ---
 int main(void) {
     stdio_init_all();
     printf("FreeRTOS Infinity RTS Core - Start\n");
@@ -119,29 +109,38 @@ int main(void) {
     gpio_pull_up(LCD1602_I2C_SCL_PIN);
     printf("I2C0 initialized on SDA:%d, SCL:%d\n", LCD1602_I2C_SDA_PIN, LCD1602_I2C_SCL_PIN);
 
-    // Blink-Tasks
-    xTaskCreate(vBlinkTaskCpp, "BlinkTask_LED25", configMINIMAL_STACK_SIZE * 3,
-                (void *)MY_CUSTOM_LED_PIN, BLINK_TASK_PRIORITY, NULL);
-    xTaskCreate(vBlinkTaskCpp, "BlinkTask_WARNLED16", configMINIMAL_STACK_SIZE * 3,
-                (void *)WARN_LED, BLINK_TASK_PRIORITY, NULL);
+    // Blink-Tasks erstellen
+    if (xTaskCreate(vBlinkTaskCpp, "BlinkTask_LED25", configMINIMAL_STACK_SIZE * 3, (void *)MY_CUSTOM_LED_PIN, BLINK_TASK_PRIORITY, NULL) != pdPASS) {
+        printf("Error: BlinkTask_LED25 konnte nicht erstellt werden!\n");
+        while (1) {}
+    }
+    if (xTaskCreate(vBlinkTaskCpp, "BlinkTask_WARNLED16", configMINIMAL_STACK_SIZE * 3, (void *)WARN_LED, BLINK_TASK_PRIORITY, NULL) != pdPASS) {
+        printf("Error: BlinkTask_WARNLED16 konnte nicht erstellt werden!\n");
+        while (1) {}
+    }
 
     // LCD1602-Task
-    xTaskCreate(vLcd1602Task, "Lcd1602Task", configMINIMAL_STACK_SIZE * 6, NULL,
-                LCD1602_TASK_PRIORITY, NULL);
+    if (xTaskCreate(vLcd1602Task, "Lcd1602Task", configMINIMAL_STACK_SIZE * 6, NULL, LCD1602_TASK_PRIORITY, NULL) != pdPASS) {
+        printf("Error: Lcd1602Task konnte nicht erstellt werden!\n");
+        while (1) {}
+    }
 
     // SSD1306-Task
-    xTaskCreate(vSsd1306Task, "Ssd1306Task", configMINIMAL_STACK_SIZE * 16, NULL,
-                SSD1306_TASK_PRIORITY, NULL);
+    if (xTaskCreate(vSsd1306Task, "Ssd1306Task", configMINIMAL_STACK_SIZE * 16, NULL, SSD1306_TASK_PRIORITY, NULL) != pdPASS) {
+        printf("Error: Ssd1306Task konnte nicht erstellt werden!\n");
+        while (1) {}
+    }
 
-    // USB-RNDIS-Task
+    // USB-RNDIS-Task starten
     start_usb_rndis_task();
 
-    // Webserver-Task
+    // Webserver-Task starten
     start_webserver_task();
 
     // FreeRTOS Scheduler starten
     vTaskStartScheduler();
 
+    // Sollte niemals hier landen
     printf("Fehler: Scheduler wurde beendet!\n");
     while (1) {
         tight_loop_contents();
