@@ -1,5 +1,3 @@
-# src/CMakeLists.txt
-
 # FreeRTOS-Konfiguration (stellt FreeRTOSConfig.h aus dem übergeordneten include/ bereit)
 add_library(freertos_config INTERFACE)
 
@@ -7,11 +5,12 @@ target_include_directories(freertos_config INTERFACE
     ${CMAKE_SOURCE_DIR}/include
 )
 
+# Webserver-Ordner hinzufügen
+add_subdirectory(webserver)
+
 # Erstelle das ausführbare Ziel
 add_executable(infinity_rts
     main.c
-    usb_rndis_task.c
-    webserver_task.c
 )
 
 # Linke notwendige Libraries
@@ -19,13 +18,19 @@ target_link_libraries(infinity_rts
     pico_stdlib
     hardware_i2c
     hardware_gpio
-    freertos_kernel      
-    freertos_config     
-    lwip
-    tinyusb_device
+
+    freertos_kernel
+    freertos_config
+
     blink_lib
     lcd1602_lib
     ssd1306_lib
+
+    webserver           # <--- unsere webserver-Library
+
+    lwipcore
+    lwipallapps
+    tinyusb_device
 )
 
 # Compiler Optionen
